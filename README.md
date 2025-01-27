@@ -65,7 +65,7 @@ WITH lowStock AS (
     FROM Products AS p
     GROUP BY p.productCode
     ORDER BY low_stock_rate DESC
-    LIMIT 10
+    
 ),
 
 --Write a query to compute the product performance for each product.
@@ -76,12 +76,13 @@ ProductPerformance AS (
     FROM OrderDetails od
     GROUP BY od.productCode
    ORDER BY total_sales DESC
-    LIMIT 10
+    
 )
 
 -- Query to combine the results and display priority products for restocking:
 SELECT DISTINCT 
     p.productCode,
+    p.productName,
     ls.low_stock_rate,
     pp.total_sales
 FROM Products p
@@ -92,10 +93,30 @@ WHERE p.productCode IN (
     INTERSECT
     SELECT productCode FROM ProductPerformance
 )
-ORDER BY ls.low_stock_rate DESC, pp.total_sales DESC;
+ORDER BY ls.low_stock_rate DESC, pp.total_sales DESC
+LIMIT 10;
+
 ```
 Output:
-![image](https://github.com/user-attachments/assets/6f2ea67d-883c-4abc-9ce8-c31682bf769a)
+![image](https://github.com/user-attachments/assets/e1b7c970-0709-4086-b165-690c11bcb9f0)
+
+**Top Priority for Restocking:**
+
+Products like 1960 BSA Gold Star DBD34 (S24_2000) and 1968 Ford Mustang (S12_1099) have both high low_stock_ratio and strong sales performance, making them top priorities for restocking.
+These items are high-demand and high-revenue generators, meaning restocking them quickly will ensure customer satisfaction and maintain profitability.
+
+**High Revenue with Limited Stock:**
+
+Products like 1928 Mercedes-Benz SSK (S18_2795) and 2002 Yamaha YZR M1 (S50_4713) have excellent sales performance despite being nearly out of stock. These items likely have strong customer interest and could lead to lost sales if not restocked soon.
+
+**Moderate Stock Issues but Strong Performance:**
+
+Products like 1997 BMW F650 ST (S32_1374) and Pont Yacht (S72_3212) are not as critically low in stock as others but still contribute significantly to revenue. Restocking these items will help sustain their momentum.
+
+**Niche Items:**
+
+Products like F/A 18 Hornet 1/72 (S700_3167) and The Mayflower (S700_1938) are generating notable revenue despite limited stock, suggesting they cater to a specific audience. Maintaining availability could enhance customer loyalty in niche markets.
+
 
 ###  Question 2: How Should We Match Marketing and Communication Strategies to Customer Behavior?
 This involves categorizing customers: finding the VIP customers and those who are less engaged.
@@ -117,36 +138,8 @@ JOIN OrderDetails AS od ON o.orderNumber = od.orderNumber
 JOIN Products AS p ON od.productCode = p.productCode
 GROUP BY c.customerNumber, c.customerName
 ORDER BY total_profit DESC;
-
---Finding the VIP and Less Engaged Customers
-
---Write a query to find the top five VIP customers.
-WITH CustomerProfit AS(
-    SELECT 
-    c.customerNumber,
-    c.customerName,
-        ROUND(SUM(od.quantityOrdered * (od.priceEach - p.buyPrice)), 2) AS total_profit
-    FROM Customers AS c
-    JOIN Orders AS o ON c.customerNumber = o.customerNumber
-    JOIN OrderDetails AS od ON o.orderNumber = od.orderNumber
-    JOIN Products AS p ON od.productCode = p.productCode
-    GROUP BY c.customerNumber, c.customerName
-    ORDER BY total_profit DESC
-)
-
--- Query to find the top five VIP customers:
-SELECT 
-    c.contactLastName,
-    c.contactFirstName,
-    c.city,
-    c.country,
-    ROUND(cp.total_profit, 2) AS profit
-FROM CustomerProfit AS cp
-JOIN customers AS c ON cp.customerNumber = c.customerNumber
-ORDER BY cp.total_profit DESC
-LIMIT 5;
 ```
-![image](https://github.com/user-attachments/assets/965ba3e6-506c-4d4b-ab2f-6525b3d43df3)
+
 
 ## Finding the VIP and Less Engaged Customers
 Using the profit per customer from the previous query, finding VIP and less engaged customers is straightforward.
@@ -194,6 +187,15 @@ LIMIT 5
 ```
 
 ![image](https://github.com/user-attachments/assets/b63296b0-fa90-47da-9d29-3afe3b122e7b)
+
+**Marketing and Communication Strategy**
+
+**For VIP Customers:**
+Organize exclusive events, personalized offers, or loyalty programs to retain and reward these high-value customers. Ensuring their satisfaction is key to maintaining profitability.
+
+**For Less-Engaged Customers:**
+Launch targeted campaigns, such as discounts, promotions, or direct communication, to re-engage these customers and potentially increase their spending.
+
 
 ### Question 3: How Much Can We Spend on Acquiring New Customers?
 Let's find the number of new customers arriving each month. That way we can check if it's worth spending money on acquiring new customers. 
@@ -261,7 +263,9 @@ FROM CustomerProfit;
 ```
 Output:![image](https://github.com/user-attachments/assets/8df3deaa-b2d7-4f15-b458-cd975d2b76e7)
 
+LTV tells us how much profit an average customer generates during their lifetime with our store. We can use it to predict our future profit. So, if we get ten new customers next month, we'll earn 390,395 dollars, and we can decide based on this prediction how much we can spend on acquiring new customers.
 
+Additionally, understanding LTV helps balance investments between acquiring new customers and retaining existing ones. While attracting new customers drives growth, ensuring the satisfaction of high-LTV customers (VIPs) can sustain profitability in the long term.
 
-**Citation**
+**Reference/source code**
 Dataquest. (n.d.). Guided Project: Customers and Products Analysis Using SQL. Retrieved from https://www.dataquest.io/mission/
